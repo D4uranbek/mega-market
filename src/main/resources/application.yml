@@ -1,0 +1,41 @@
+server:
+  port: 80
+
+spring:
+  datasource:
+    username: postgres
+    password: 1111
+    url: jdbc:postgresql://localhost:5432/mega_market
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+api:
+  info:
+    title: Mega Market API
+    description: This is the market service api for Yandex school
+    version: 1.0
+    terms-of-service: https://yandex.com
+    contact-name: d4uranbek
+    contact-email: d4uranbek@gmail.com
+    contact-url: https://yandex.com
+    license-name: Apache 2.0
+    license-url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+service:
+  prop:
+    protocol: http
+    ip: localhost
+    port: 80
+    url: yandex.com
+
+springdoc:
+  swagger-ui:
+    path: swagger-ui
+  api-docs:
+    path: /api-docs
