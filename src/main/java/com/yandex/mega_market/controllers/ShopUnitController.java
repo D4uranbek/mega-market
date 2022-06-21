@@ -26,7 +26,6 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
-@ResponseStatus( HttpStatus.OK )
 public class ShopUnitController {
 
     private final ShopUnitService service;
@@ -51,6 +50,7 @@ public class ShopUnitController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Невалидная схема документа или входные данные не верны."
+
             )
     } )
     @PostMapping( value = "/imports",
@@ -60,7 +60,9 @@ public class ShopUnitController {
     public ResponseEntity<Void> importNewShopUnit( @RequestBody( required = false )
                                                    @Valid
                                                    ShopUnitImportRequest shopUnitImportRequest ) {
-        return new ResponseEntity<>( HttpStatus.NOT_IMPLEMENTED );
+
+        service.importShopUnits( shopUnitImportRequest );
+        return new ResponseEntity<>( HttpStatus.OK );
     }
 
 
@@ -95,7 +97,9 @@ public class ShopUnitController {
     public ResponseEntity<Void> deleteElement( @Parameter( description = "Идентификатор", required = true )
                                                @PathVariable( "id" )
                                                UUID id ) {
-        return new ResponseEntity<>( HttpStatus.NOT_IMPLEMENTED );
+
+        service.deleteShopUnit( id );
+        return new ResponseEntity<>( HttpStatus.OK );
     }
 
 
@@ -130,7 +134,10 @@ public class ShopUnitController {
     public ResponseEntity<ShopUnit> getElementInfo( @Parameter( description = "Идентификатор элемента", required = true )
                                                     @PathVariable( "id" )
                                                     UUID id ) {
-        return new ResponseEntity<>( HttpStatus.NOT_IMPLEMENTED );
+
+        ShopUnit shopUnit = service.getElementById( id );
+        return new ResponseEntity<>( shopUnit, HttpStatus.OK );
+
     }
 
     @Operation(

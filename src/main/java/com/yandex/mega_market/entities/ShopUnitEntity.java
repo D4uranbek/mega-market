@@ -18,18 +18,10 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table( name = "shop_unit", indexes = {
-        @Index( name = "shop_unit_id_key",
-                columnList = "id", unique = true
-        )
-} )
+@Table( name = "shop_unit" )
 public class ShopUnitEntity {
 
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY )
-    @Column( name = "uid", nullable = false )
-    private Long uid;
-
     @Column( name = "id", nullable = false )
     private UUID id;
 

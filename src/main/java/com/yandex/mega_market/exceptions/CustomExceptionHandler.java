@@ -1,6 +1,7 @@
 package com.yandex.mega_market.exceptions;
 
 import com.yandex.mega_market.DTOs.Error;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,10 +13,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice( "com.yandex.mega_market" )
 public class CustomExceptionHandler {
 
-    @ExceptionHandler( { CustomException.class } )
-    public ResponseEntity<Error> exceptionHandler( CustomException e ) {
-        return new ResponseEntity<>( new Error( e.getCode(), e.getMessage() ),
-                e.getStatus() );
+    @ExceptionHandler( { CustomException.class, Exception.class } )
+    public ResponseEntity<Error> exceptionHandler( Exception e ) {
+
+        if ( e instanceof CustomException customException ) {
+            return new ResponseEntity<>( new Error( customException.getCode(), customException.getMessage() ),
+                    customException.getStatus() );
+        }
+        return new ResponseEntity<>( new Error( 400, "Validation Failed" ),
+                HttpStatus.BAD_REQUEST );
+
     }
 
 }
