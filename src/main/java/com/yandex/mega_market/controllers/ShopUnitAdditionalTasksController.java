@@ -1,6 +1,7 @@
 package com.yandex.mega_market.controllers;
 
 import com.yandex.mega_market.DTOs.ShopUnitStatisticResponse;
+import com.yandex.mega_market.services.ShopUnitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -29,6 +31,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag( name = "Дополнительные задачи" )
 public class ShopUnitAdditionalTasksController {
+
+    private final ShopUnitService service;
 
     @Operation(
             description = "Получение списка **товаров**, цена которых была обновлена за последние 24 часа включительно [now() - 24h, now()] от времени переданном в запросе."
@@ -44,13 +48,16 @@ public class ShopUnitAdditionalTasksController {
             )
     } )
     @GetMapping( value = "/sales", produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<ShopUnitStatisticResponse> getPriceUpdatedShopUnit( @Parameter( description = "Дата и время запроса. Дата должна обрабатываться согласно ISO 8601 (такой придерживается OpenAPI). Если дата не удовлетворяет данному формату, необходимо отвечать 400", required = true )
-                                                                              @RequestParam( value = "date" )
-                                                                              @DateTimeFormat( iso = DateTimeFormat.ISO.DATE_TIME )
-                                                                              @NotNull
-                                                                              @Valid
-                                                                              Date date ) {
-        return new ResponseEntity<>( HttpStatus.NOT_IMPLEMENTED );
+    public ResponseEntity<ShopUnitStatisticResponse> getShopUnitChangedPriceLastDay( @Parameter( description = "Дата и время запроса. Дата должна обрабатываться согласно ISO 8601 (такой придерживается OpenAPI). Если дата не удовлетворяет данному формату, необходимо отвечать 400", required = true )
+                                                                                     @RequestParam( value = "date" )
+                                                                                     @DateTimeFormat( iso = DateTimeFormat.ISO.DATE_TIME )
+                                                                                     @NotNull
+                                                                                     @Valid
+                                                                                     LocalDateTime date ) {
+
+        ShopUnitStatisticResponse shopUnitStatisticResponse = service.getShopUnitChangedPriceLastDay( date );
+        return new ResponseEntity<>( shopUnitStatisticResponse, HttpStatus.OK );
+
     }
 
 

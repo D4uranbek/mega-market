@@ -20,6 +20,6 @@ public class ShopUnitStatisticResponse {
 
     @Schema( description = "История в произвольном порядке." )
     @Valid
-    private List<ShopUnitStatisticUnit> items;
+    private List<ShopUnit> items;
 
 }
