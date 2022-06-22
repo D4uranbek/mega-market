@@ -2,10 +2,15 @@ package com.yandex.mega_market.mappers;
 
 import com.yandex.mega_market.DTOs.ShopUnit;
 import com.yandex.mega_market.DTOs.ShopUnitImport;
+import com.yandex.mega_market.DTOs.ShopUnitImportRequest;
+import com.yandex.mega_market.DTOs.TransferInteger;
 import com.yandex.mega_market.entities.ShopUnitEntity;
 import com.yandex.mega_market.entities.enums.ShopUnitType;
+import com.yandex.mega_market.repositories.ShopUnitRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,32 +20,58 @@ import java.util.UUID;
  * @since 22.06.2022
  */
 @Component
+@RequiredArgsConstructor
 public class CustomMapper {
-    public ShopUnitEntity toShopUnitEntity( ShopUnitImport shopUnitImport ) {
+
+    private final ShopUnitRepository repository;
+
+    public ShopUnitEntity toShopUnitEntity( ShopUnitImport shopUnitImport, LocalDateTime dateFromShopUnitRequest ) {
         if ( shopUnitImport == null ) {
             return null;
         } else {
             ShopUnitEntity shopUnitEntity = new ShopUnitEntity();
-            shopUnitEntity.setId( shopUnitImport.getId() );
-            shopUnitEntity.setName( shopUnitImport.getName() );
-            shopUnitEntity.setType( shopUnitImport.getType() );
-            shopUnitEntity.setPrice( shopUnitImport.getPrice() );
+            UUID id = shopUnitImport.getId();
+            String name = shopUnitImport.getName();
+            Long price = shopUnitImport.getPrice();
+            ShopUnitType type = shopUnitImport.getType();
+
+            shopUnitEntity.setId( id );
+            shopUnitEntity.setName( name );
+            shopUnitEntity.setDate( dateFromShopUnitRequest );
+            shopUnitEntity.setType( type );
+            shopUnitEntity.setPrice( price );
+
+            if ( type == ShopUnitType.OFFER ) {
+                ShopUnitEntity unitFromDb = repository.findByIdAndType( id, ShopUnitType.OFFER );
+                if ( unitFromDb != null && unitFromDb.getPrice().intValue() != price.intValue() ) {
+                    shopUnitEntity.setLastPriceUpdatedTime( dateFromShopUnitRequest );
+                } else if ( unitFromDb == null ) {
+                    shopUnitEntity.setLastPriceUpdatedTime( dateFromShopUnitRequest );
+                } else {
+                    shopUnitEntity.setLastPriceUpdatedTime( unitFromDb.getLastPriceUpdatedTime() );
+                }
+            }
             return shopUnitEntity;
         }
     }
 
-    public List<ShopUnitEntity> toShopUnitEntityList( List<ShopUnitImport> shopUnitImports ) {
-        if ( shopUnitImports == null ) {
-            return null;
-        } else {
-            List<ShopUnitEntity> list = new ArrayList<>( shopUnitImports.size() );
+    public List<ShopUnitEntity> toShopUnitEntityList( ShopUnitImportRequest shopUnitImportRequest ) {
+        List<ShopUnitEntity> shopUnitList = new ArrayList<>();
+        List<ShopUnitImport> shopUnitImportList = shopUnitImportRequest.getItems();
 
-            for ( ShopUnitImport shopUnitImport : shopUnitImports ) {
-                list.add( this.toShopUnitEntity( shopUnitImport ) );
-            }
-
-            return list;
+        for ( ShopUnitImport shopUnitImport : shopUnitImportList ) {
+            ShopUnitEntity shopUnitEntity = toShopUnitEntity( shopUnitImport, shopUnitImportRequest.getUpdateDate() );
+            repository.save( shopUnitEntity );
+            shopUnitList.add( shopUnitEntity );
         }
+
+        addParentsToUnits( shopUnitImportList, shopUnitList );
+        addAllParentCategoriesToShopUnitList( shopUnitList, new ArrayList<>( shopUnitList ) );
+        updateDateForAlLCategories( shopUnitList, shopUnitImportRequest.getUpdateDate() );
+        setPriceToAllCategories( shopUnitList );
+        setPriceNullToAllCategoriesWithNoChildren();
+
+        return shopUnitList;
     }
 
     public ShopUnit toShopUnit( ShopUnitEntity shopUnitEntity ) {
@@ -82,6 +113,92 @@ public class CustomMapper {
                 return null;
             } else {
                 return parent.getId();
+            }
+        }
+    }
+
+    private void addParentsToUnits( List<ShopUnitImport> shopUnitImportList, List<ShopUnitEntity> shopUnitList ) {
+        for ( int i = 0; i < shopUnitImportList.size(); i++ ) {
+            ShopUnitImport currentImportUnit = shopUnitImportList.get( i );
+
+            ShopUnitEntity parent = shopUnitList.stream()
+                    .filter( ( x ) -> x.getId().equals( currentImportUnit.getParentId() ) )
+                    .filter( ( x ) -> x.getType() == ShopUnitType.CATEGORY )
+                    .findFirst().orElse( null );
+
+            ShopUnitEntity parentFromDb = repository.findByIdAndType(
+                    currentImportUnit.getParentId(),
+                    ShopUnitType.CATEGORY );
+
+            ShopUnitEntity currentUnit = shopUnitList.get( i );
+
+            if ( parent == null && parentFromDb != null && !shopUnitList.contains( parentFromDb ) ) {
+                currentUnit.setParent( parentFromDb );
+            } else {
+                currentUnit.setParent( parent );
+            }
+        }
+    }
+
+    private void addAllParentCategoriesToShopUnitList( List<ShopUnitEntity> shopUnitList, List<ShopUnitEntity> copyOfOriginalList ) {
+        for ( ShopUnitEntity shopUnit : copyOfOriginalList ) {
+            while ( true ) {
+                if ( shopUnit.getParent() != null && !shopUnitList.contains( shopUnit.getParent() ) ) {
+                    ShopUnitEntity parent = repository.findById( shopUnit.getParent().getId() ).orElse( null );
+
+                    shopUnitList.add( parent );
+                    shopUnit = shopUnit.getParent();
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void updateDateForAlLCategories( List<ShopUnitEntity> shopUnitList, LocalDateTime updateDate ) {
+        shopUnitList.stream()
+                .filter( ( x ) -> x.getType() == ShopUnitType.CATEGORY )
+                .filter( ( x ) -> x.getDate() != updateDate ).
+                forEach( ( x ) -> x.setDate( updateDate ) );
+    }
+
+    private void setPriceToAllCategories( List<ShopUnitEntity> shopUnitList ) {
+        for ( ShopUnitEntity currentShopUnit : shopUnitList ) {
+            if ( currentShopUnit.getType() == ShopUnitType.CATEGORY ) {
+
+                TransferInteger transferInteger = calculatePriceForCategory( currentShopUnit );
+                if ( transferInteger.getOfferCount() == 0 ) {
+                    currentShopUnit.setPrice( null );
+                } else {
+                    long avgCategoryPrice = transferInteger.getOfferTotalPrice() / transferInteger.getOfferCount();
+                    currentShopUnit.setPrice( avgCategoryPrice );
+                }
+            }
+        }
+    }
+
+    private TransferInteger calculatePriceForCategory( ShopUnitEntity currentShopUnit ) {
+        int offersSumPrice = 0;
+        int offersCount = 0;
+        if ( currentShopUnit.getChildren().size() > 0 ) {
+            for ( ShopUnitEntity currentUnit : currentShopUnit.getChildren() ) {
+                if ( currentUnit.getType() == ShopUnitType.OFFER ) {
+                    offersSumPrice += currentUnit.getPrice();
+                    offersCount += 1;
+                }
+                TransferInteger transferInteger = calculatePriceForCategory( currentUnit );
+                offersSumPrice += transferInteger.getOfferTotalPrice();
+                offersCount += transferInteger.getOfferCount();
+            }
+        }
+        return new TransferInteger( offersSumPrice, offersCount );
+    }
+
+    private void setPriceNullToAllCategoriesWithNoChildren() {
+        List<ShopUnitEntity> shopUnitList = repository.findAllByType( ShopUnitType.CATEGORY );
+        for ( ShopUnitEntity shopUnit : shopUnitList ) {
+            if ( shopUnit.getType() == ShopUnitType.CATEGORY && shopUnit.getChildren().size() == 0 ) {
+                shopUnit.setPrice( null );
             }
         }
     }
