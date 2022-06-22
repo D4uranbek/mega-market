@@ -197,7 +197,7 @@ public class CustomMapper {
     private void setPriceNullToAllCategoriesWithNoChildren() {
         List<ShopUnitEntity> shopUnitList = helperService.findAllByType( ShopUnitType.CATEGORY );
         for ( ShopUnitEntity shopUnit : shopUnitList ) {
-            if ( shopUnit.getType() == ShopUnitType.CATEGORY && shopUnit.getChildren().size() == 0 ) {
+            if ( shopUnit.getType() == ShopUnitType.CATEGORY && shopUnit.getChildren().isEmpty() ) {
                 shopUnit.setPrice( null );
             }
         }
