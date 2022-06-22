@@ -1,4 +1,4 @@
-package com.yandex.mega_market.DTOs;
+package com.yandex.mega_market.entities.enums;
 
 /**
  * @author D4uranbek

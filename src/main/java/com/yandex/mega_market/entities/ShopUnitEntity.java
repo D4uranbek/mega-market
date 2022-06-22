@@ -1,13 +1,15 @@
 package com.yandex.mega_market.entities;
 
-import com.yandex.mega_market.DTOs.ShopUnitType;
+import com.yandex.mega_market.entities.enums.ShopUnitType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -22,22 +24,48 @@ import java.util.UUID;
 public class ShopUnitEntity {
 
     @Id
-    @Column( name = "id", nullable = false )
+    @Column( name = "id", updatable = false, nullable = false )
     private UUID id;
 
     @Column( name = "name", nullable = false )
     private String name;
 
     @Column( name = "date", nullable = false )
-    @DateTimeFormat( iso = DateTimeFormat.ISO.DATE_TIME )
-    private Date date;
+    private LocalDateTime date;
 
-    @Column( name = "parent_id" )
-    private UUID parentId;
-
-    @Enumerated( EnumType.STRING )
+    @Enumerated( value = EnumType.STRING )
+    @Column( name = "type", updatable = false )
     private ShopUnitType type;
 
+    @Column( name = "price" )
     private Long price;
+
+
+    @Column( name = "last_price_updated_time" )
+    private LocalDateTime lastPriceUpdatedTime;
+
+    @ManyToOne( cascade = CascadeType.REFRESH, fetch = FetchType.LAZY )
+    @JoinColumn( name = "parent_id" )
+    private ShopUnitEntity parent;
+
+    @OneToMany( cascade = { CascadeType.MERGE, CascadeType.REFRESH }, mappedBy = "parent" )
+    private List<ShopUnitEntity> children = new ArrayList<>();
+
+    public void setParent( ShopUnitEntity parent ) {
+        if ( Objects.nonNull( parent ) ) {
+            if ( !parent.getChildren().contains( this ) ) {
+                parent.getChildren().add( this );
+
+            }
+            if ( this.getId() == parent.getId() ) {
+                parent = null;
+            }
+        } else {
+            if ( Objects.nonNull( this.parent ) ) {
+                this.parent.getChildren().remove( this );
+            }
+        }
+        this.parent = parent;
+    }
 
 }

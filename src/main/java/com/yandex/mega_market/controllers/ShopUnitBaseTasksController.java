@@ -2,22 +2,19 @@ package com.yandex.mega_market.controllers;
 
 import com.yandex.mega_market.DTOs.ShopUnit;
 import com.yandex.mega_market.DTOs.ShopUnitImportRequest;
-import com.yandex.mega_market.DTOs.ShopUnitStatisticResponse;
 import com.yandex.mega_market.services.ShopUnitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -26,7 +23,8 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
-public class ShopUnitController {
+@Tag( name = "Базовые задачи" )
+public class ShopUnitBaseTasksController {
 
     private final ShopUnitService service;
 
@@ -39,8 +37,7 @@ public class ShopUnitController {
      * or Невалидная схема документа или входные данные не верны. (status code 400)
      */
     @Operation(
-            description = "Импортирует новые товары и/или категории.",
-            tags = { "Базовые задачи" }
+            description = "Импортирует новые товары и/или категории."
     )
     @ApiResponses( value = {
             @ApiResponse(
@@ -62,7 +59,7 @@ public class ShopUnitController {
                                                    ShopUnitImportRequest shopUnitImportRequest ) {
 
         service.importShopUnits( shopUnitImportRequest );
-        return new ResponseEntity<>( HttpStatus.OK );
+        return ResponseEntity.ok().build();
     }
 
 
@@ -76,8 +73,7 @@ public class ShopUnitController {
      * or Категория/товар не найден. (status code 404)
      */
     @Operation(
-            description = "Удалить элемент по идентификатору.",
-            tags = { "Базовые задачи", }
+            description = "Удалить элемент по идентификатору."
     )
     @ApiResponses( value = {
             @ApiResponse(
@@ -99,7 +95,7 @@ public class ShopUnitController {
                                                UUID id ) {
 
         service.deleteShopUnit( id );
-        return new ResponseEntity<>( HttpStatus.OK );
+        return ResponseEntity.ok().build();
     }
 
 
@@ -113,8 +109,7 @@ public class ShopUnitController {
      * or Категория/товар не найден. (status code 404)
      */
     @Operation(
-            description = "Получить информацию об элементе по идентификатору.",
-            tags = { "Базовые задачи" }
+            description = "Получить информацию об элементе по идентификатору."
     )
     @ApiResponses( value = {
             @ApiResponse(
@@ -140,62 +135,4 @@ public class ShopUnitController {
 
     }
 
-    @Operation(
-            description = "Получение списка **товаров**, цена которых была обновлена за последние 24 часа включительно [now() - 24h, now()] от времени переданном в запросе.",
-            tags = { "Дополнительные задачи" }
-    )
-    @ApiResponses( value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Список товаров, цена которых была обновлена."
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Невалидная схема документа или входные данные не верны."
-            )
-    } )
-    @GetMapping( value = "/sales", produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<ShopUnitStatisticResponse> getPriceUpdatedShopUnit( @Parameter( description = "Дата и время запроса. Дата должна обрабатываться согласно ISO 8601 (такой придерживается OpenAPI). Если дата не удовлетворяет данному формату, необходимо отвечать 400", required = true )
-                                                                              @RequestParam( value = "date", required = true )
-                                                                              @DateTimeFormat( iso = DateTimeFormat.ISO.DATE_TIME )
-                                                                              @NotNull
-                                                                              @Valid
-                                                                              Date date ) {
-        return new ResponseEntity<>( HttpStatus.NOT_IMPLEMENTED );
-    }
-
-
-    @Operation(
-            description = "Получение статистики (истории обновлений) по товару/категории за заданный полуинтервал [from, to).",
-            tags = { "Дополнительные задачи" }
-    )
-    @ApiResponses( value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Статистика по элементу."
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Некорректный формат запроса или некорректные даты интервала."
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Категория/товар не найден."
-            )
-    } )
-    @GetMapping( value = "/node/{id}/statistic", produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<ShopUnitStatisticResponse> getStatisticsById( @Parameter( description = "UUID товара/категории для которой будет отображаться статистика", required = true )
-                                                                        @PathVariable( "id" ) UUID id,
-
-                                                                        @Parameter( description = "Дата и время начала интервала, для которого считается статистика." )
-                                                                        @RequestParam( value = "dateStart", required = false )
-                                                                        @DateTimeFormat( iso = DateTimeFormat.ISO.DATE_TIME )
-                                                                        @Valid Date dateStart,
-
-                                                                        @Parameter( description = "Дата и время конца интервала, для которого считается статистика." )
-                                                                        @RequestParam( value = "dateEnd", required = false )
-                                                                        @DateTimeFormat( iso = DateTimeFormat.ISO.DATE_TIME )
-                                                                        @Valid Date dateEnd ) {
-        return new ResponseEntity<>( HttpStatus.NOT_IMPLEMENTED );
-    }
 }

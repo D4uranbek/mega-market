@@ -1,5 +1,6 @@
 package com.yandex.mega_market.DTOs;
 
+import com.yandex.mega_market.entities.enums.ShopUnitType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

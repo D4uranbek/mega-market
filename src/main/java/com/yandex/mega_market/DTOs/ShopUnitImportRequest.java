@@ -8,7 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 
 import javax.validation.Valid;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -30,6 +30,6 @@ public class ShopUnitImportRequest {
     )
     @Valid
     @DateTimeFormat( iso = ISO.DATE_TIME )
-    private Date updateDate;
+    private LocalDateTime updateDate;
 
 }

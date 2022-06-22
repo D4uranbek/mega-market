@@ -1,12 +1,12 @@
 package com.yandex.mega_market.repositories;
 
 import com.yandex.mega_market.entities.ShopUnitEntity;
+import com.yandex.mega_market.entities.enums.ShopUnitType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -17,14 +17,8 @@ import java.util.UUID;
 @Transactional
 public interface ShopUnitRepository extends JpaRepository<ShopUnitEntity, UUID> {
 
-    Optional<ShopUnitEntity> findById( UUID id );
+    List<ShopUnitEntity> findAllByType( ShopUnitType type );
 
-    ShopUnitEntity getById( UUID id );
-
-    List<ShopUnitEntity> findByParentId( UUID id );
-
-    void deleteById( UUID id );
-
-    void deleteByParentId( UUID id );
+    ShopUnitEntity findByIdAndType( UUID id, ShopUnitType type );
 
 }
