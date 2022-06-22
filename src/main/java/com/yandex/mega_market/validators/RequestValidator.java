@@ -3,8 +3,10 @@ package com.yandex.mega_market.validators;
 import com.yandex.mega_market.DTOs.ShopUnitImport;
 import com.yandex.mega_market.DTOs.ShopUnitImportRequest;
 import com.yandex.mega_market.entities.enums.ShopUnitType;
-import com.yandex.mega_market.exceptions.*;
+import com.yandex.mega_market.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 /**
  * @author D4uranbek
@@ -20,21 +22,11 @@ public class RequestValidator {
     }
 
     public void validateShopUnitImport( ShopUnitImport shopUnitImport ) {
-        if ( shopUnitImport.getId() == null ) {
-            throw new ValidationException();
-        }
-        if ( shopUnitImport.getName() == null
-                || shopUnitImport.getName().equals( "" )
-                || shopUnitImport.getName().trim().length() == 0 ) {
-            throw new ValidationException();
-        }
-        if ( shopUnitImport.getType() == ShopUnitType.OFFER && shopUnitImport.getPrice() == null ) {
-            throw new ValidationException();
-        }
-        if ( shopUnitImport.getPrice() != null && shopUnitImport.getPrice() < 0 ) {
-            throw new ValidationException();
-        }
-        if ( shopUnitImport.getType() == null ) {
+        if ( Objects.isNull( shopUnitImport.getId() )
+                || Objects.isNull( shopUnitImport.getName() ) || shopUnitImport.getName().trim().isBlank()
+                || shopUnitImport.getType() == ShopUnitType.OFFER && Objects.isNull( shopUnitImport.getPrice() )
+                || Objects.nonNull( shopUnitImport.getPrice() ) && shopUnitImport.getPrice() < 0
+                || Objects.isNull( shopUnitImport.getType() ) ) {
             throw new ValidationException();
         }
     }

@@ -19,7 +19,6 @@ public interface ShopUnitMapper {
 
     ShopUnitEntity toShopUnitEntity( ShopUnitImport shopUnitImport );
 
-
     List<ShopUnitEntity> toShopUnitEntityList( List<ShopUnitImport> shopUnitImports );
 
     @Mapping( target = "parentId", source = "shopUnitEntity.parent.id" )

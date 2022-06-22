@@ -6,13 +6,14 @@ import com.yandex.mega_market.DTOs.ShopUnitImportRequest;
 import com.yandex.mega_market.DTOs.TransferInteger;
 import com.yandex.mega_market.entities.ShopUnitEntity;
 import com.yandex.mega_market.entities.enums.ShopUnitType;
-import com.yandex.mega_market.repositories.ShopUnitRepository;
+import com.yandex.mega_market.services.HelperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -23,10 +24,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomMapper {
 
-    private final ShopUnitRepository repository;
+    private final HelperService helperService;
 
     public ShopUnitEntity toShopUnitEntity( ShopUnitImport shopUnitImport, LocalDateTime dateFromShopUnitRequest ) {
-        if ( shopUnitImport == null ) {
+        if ( Objects.isNull( shopUnitImport ) ) {
             return null;
         } else {
             ShopUnitEntity shopUnitEntity = new ShopUnitEntity();
@@ -41,11 +42,11 @@ public class CustomMapper {
             shopUnitEntity.setType( type );
             shopUnitEntity.setPrice( price );
 
-            if ( type == ShopUnitType.OFFER ) {
-                ShopUnitEntity unitFromDb = repository.findByIdAndType( id, ShopUnitType.OFFER );
-                if ( unitFromDb != null && unitFromDb.getPrice().intValue() != price.intValue() ) {
+            if ( ShopUnitType.OFFER.equals( type ) ) {
+                ShopUnitEntity unitFromDb = helperService.findByIdAndType( id, ShopUnitType.OFFER );
+                if ( Objects.nonNull( unitFromDb ) && unitFromDb.getPrice().intValue() != price.intValue() ) {
                     shopUnitEntity.setLastPriceUpdatedTime( dateFromShopUnitRequest );
-                } else if ( unitFromDb == null ) {
+                } else if ( Objects.isNull( unitFromDb ) ) {
                     shopUnitEntity.setLastPriceUpdatedTime( dateFromShopUnitRequest );
                 } else {
                     shopUnitEntity.setLastPriceUpdatedTime( unitFromDb.getLastPriceUpdatedTime() );
@@ -61,7 +62,7 @@ public class CustomMapper {
 
         for ( ShopUnitImport shopUnitImport : shopUnitImportList ) {
             ShopUnitEntity shopUnitEntity = toShopUnitEntity( shopUnitImport, shopUnitImportRequest.getUpdateDate() );
-            repository.save( shopUnitEntity );
+            helperService.save( shopUnitEntity );
             shopUnitList.add( shopUnitEntity );
         }
 
@@ -75,7 +76,7 @@ public class CustomMapper {
     }
 
     public ShopUnit toShopUnit( ShopUnitEntity shopUnitEntity ) {
-        if ( shopUnitEntity == null ) {
+        if ( Objects.isNull( shopUnitEntity ) ) {
             return null;
         } else {
             ShopUnit shopUnit = new ShopUnit();
@@ -91,7 +92,7 @@ public class CustomMapper {
     }
 
     public List<ShopUnit> toShopUnitList( List<ShopUnitEntity> shopUnitEntities ) {
-        if ( shopUnitEntities == null ) {
+        if ( Objects.isNull( shopUnitEntities ) ) {
             return null;
         } else {
             List<ShopUnit> list = new ArrayList<>( shopUnitEntities.size() );
@@ -105,11 +106,11 @@ public class CustomMapper {
     }
 
     private UUID getShopUnitEntityParentId( ShopUnitEntity shopUnitEntity ) {
-        if ( shopUnitEntity == null ) {
+        if ( Objects.isNull( shopUnitEntity ) ) {
             return null;
         } else {
             ShopUnitEntity parent = shopUnitEntity.getParent();
-            if ( parent == null ) {
+            if ( Objects.isNull( parent ) ) {
                 return null;
             } else {
                 return parent.getId();
@@ -122,17 +123,16 @@ public class CustomMapper {
             ShopUnitImport currentImportUnit = shopUnitImportList.get( i );
 
             ShopUnitEntity parent = shopUnitList.stream()
-                    .filter( ( x ) -> x.getId().equals( currentImportUnit.getParentId() ) )
-                    .filter( ( x ) -> x.getType() == ShopUnitType.CATEGORY )
-                    .findFirst().orElse( null );
+                    .filter( shopUnitEntity -> shopUnitEntity.getId().equals( currentImportUnit.getParentId() ) )
+                    .filter( shopUnitEntity -> shopUnitEntity.getType() == ShopUnitType.CATEGORY )
+                    .findAny().orElse( null );
 
-            ShopUnitEntity parentFromDb = repository.findByIdAndType(
-                    currentImportUnit.getParentId(),
+            ShopUnitEntity parentFromDb = helperService.findByIdAndType( currentImportUnit.getParentId(),
                     ShopUnitType.CATEGORY );
 
             ShopUnitEntity currentUnit = shopUnitList.get( i );
 
-            if ( parent == null && parentFromDb != null && !shopUnitList.contains( parentFromDb ) ) {
+            if ( Objects.isNull( parent ) && Objects.nonNull( parentFromDb ) && !shopUnitList.contains( parentFromDb ) ) {
                 currentUnit.setParent( parentFromDb );
             } else {
                 currentUnit.setParent( parent );
@@ -143,8 +143,8 @@ public class CustomMapper {
     private void addAllParentCategoriesToShopUnitList( List<ShopUnitEntity> shopUnitList, List<ShopUnitEntity> copyOfOriginalList ) {
         for ( ShopUnitEntity shopUnit : copyOfOriginalList ) {
             while ( true ) {
-                if ( shopUnit.getParent() != null && !shopUnitList.contains( shopUnit.getParent() ) ) {
-                    ShopUnitEntity parent = repository.findById( shopUnit.getParent().getId() ).orElse( null );
+                if ( Objects.nonNull( shopUnit.getParent() ) && !shopUnitList.contains( shopUnit.getParent() ) ) {
+                    ShopUnitEntity parent = helperService.findById( shopUnit.getParent().getId() ).orElse( null );
 
                     shopUnitList.add( parent );
                     shopUnit = shopUnit.getParent();
@@ -157,9 +157,9 @@ public class CustomMapper {
 
     private void updateDateForAlLCategories( List<ShopUnitEntity> shopUnitList, LocalDateTime updateDate ) {
         shopUnitList.stream()
-                .filter( ( x ) -> x.getType() == ShopUnitType.CATEGORY )
-                .filter( ( x ) -> x.getDate() != updateDate ).
-                forEach( ( x ) -> x.setDate( updateDate ) );
+                .filter( shopUnitEntity -> shopUnitEntity.getType() == ShopUnitType.CATEGORY )
+                .filter( shopUnitEntity -> shopUnitEntity.getDate() != updateDate ).
+                forEach( shopUnitEntity -> shopUnitEntity.setDate( updateDate ) );
     }
 
     private void setPriceToAllCategories( List<ShopUnitEntity> shopUnitList ) {
@@ -195,7 +195,7 @@ public class CustomMapper {
     }
 
     private void setPriceNullToAllCategoriesWithNoChildren() {
-        List<ShopUnitEntity> shopUnitList = repository.findAllByType( ShopUnitType.CATEGORY );
+        List<ShopUnitEntity> shopUnitList = helperService.findAllByType( ShopUnitType.CATEGORY );
         for ( ShopUnitEntity shopUnit : shopUnitList ) {
             if ( shopUnit.getType() == ShopUnitType.CATEGORY && shopUnit.getChildren().size() == 0 ) {
                 shopUnit.setPrice( null );

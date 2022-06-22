@@ -1,8 +1,8 @@
 package com.yandex.mega_market.services;
 
-import com.yandex.mega_market.DTOs.*;
+import com.yandex.mega_market.DTOs.ShopUnit;
+import com.yandex.mega_market.DTOs.ShopUnitImportRequest;
 import com.yandex.mega_market.entities.ShopUnitEntity;
-import com.yandex.mega_market.entities.enums.ShopUnitType;
 import com.yandex.mega_market.exceptions.NotFoundException;
 import com.yandex.mega_market.mappers.CustomMapper;
 import com.yandex.mega_market.repositories.ShopUnitRepository;
@@ -10,8 +10,6 @@ import com.yandex.mega_market.validators.RequestValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
