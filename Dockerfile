@@ -1,4 +1,4 @@
-FROM FROM openjdk:17
+FROM openjdk:17
 
 RUN apt-get update && echo "1"
 RUN apt-get install -y vim nano
