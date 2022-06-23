@@ -2,7 +2,6 @@ package com.yandex.mega_market.validators;
 
 import com.yandex.mega_market.DTOs.ShopUnitImport;
 import com.yandex.mega_market.DTOs.ShopUnitImportRequest;
-import com.yandex.mega_market.entities.ShopUnitEntity;
 import com.yandex.mega_market.entities.enums.ShopUnitType;
 import com.yandex.mega_market.exceptions.ValidationException;
 import com.yandex.mega_market.services.HelperService;
@@ -55,10 +54,11 @@ public class RequestValidator {
 
         // родителем товара или категории может быть только категория
         if ( Objects.nonNull( shopUnitImport.getParentId() ) ) {
-            ShopUnitEntity parent = service.findById( shopUnitImport.getParentId() ).orElseThrow( ValidationException::new );
-            if ( !ShopUnitType.CATEGORY.equals( parent.getType() ) ) {
-                throw new ValidationException();
-            }
+            service.findById( shopUnitImport.getParentId() ).ifPresent( parent -> {
+                if ( !ShopUnitType.CATEGORY.equals( parent.getType() ) ) {
+                    throw new ValidationException();
+                }
+            } );
         }
     }
 }
