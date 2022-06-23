@@ -1,13 +1,17 @@
 version: "3.9"
 services:
   service:
-    image: d4uranbek/mega-market:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: service_mega_market
     restart: "always"
     environment:
-      JDBC_URI: "jdbc:postgresql://localhost:5432/mega_market"
+      JDBC_URI: "jdbc:postgresql://db_mega_market:5432/mega_market"
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "1111"
+    volumes:
+      - "./src/main/java/com/yandex/mega_market/:/home/jdk/app"
     ports:
       - "80:80"
     networks:
@@ -54,7 +58,7 @@ services:
     volumes:
       - 'my_app_data:/var/lib/postgresql/data'
     ports:
-      - "8001:5432"
+      - "5432:5432"
     restart: "always"
     networks:
       - backend
