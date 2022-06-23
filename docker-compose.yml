@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  service:
+  jdk:
     build:
       context: .
       dockerfile: Dockerfile
