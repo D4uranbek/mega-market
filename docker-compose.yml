@@ -1,13 +1,13 @@
 version: "3.9"
 services:
   jdk:
-    build:
-      context: .
-      dockerfile: Dockerfile
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
     container_name: service_mega_market
     restart: "always"
     environment:
-      JDBC_URI: "jdbc:postgresql://db_mega_market:5432/mega_market"
+      JDBC_URI: "jdbc:postgresql://db_mega_market:5432/mega_market_db"
       SPRING_DATASOURCE_USERNAME: "postgres"
       SPRING_DATASOURCE_PASSWORD: "1111"
     volumes:
@@ -51,7 +51,7 @@ services:
       - "-c"
       - "pg_stat_statements.track=all"
     environment:
-      POSTGRES_DB: "d4uranbek_db"
+      POSTGRES_DB: "mega_market_db"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "1111"
       PGDATA: "/var/lib/postgresql/data/pgdata"
