@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    username: postgres
-    password: 1111
-    url: jdbc:postgresql://db_mega_market:5432/mega_market
+    url: ${JDBC_URI}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
