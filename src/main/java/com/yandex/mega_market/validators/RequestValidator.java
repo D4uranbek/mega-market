@@ -6,7 +6,7 @@ import com.yandex.mega_market.entities.enums.ShopUnitType;
 import com.yandex.mega_market.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author D4uranbek
@@ -15,18 +15,34 @@ import java.util.Objects;
 @Component
 public class RequestValidator {
     public void validateShopUnitImportRequest( ShopUnitImportRequest shopUnitImportRequest ) {
-        if ( shopUnitImportRequest.getItems().size() < 1 || shopUnitImportRequest.getUpdateDate() == null ) {
+        List<ShopUnitImport> items = shopUnitImportRequest.getItems();
+        if ( Objects.isNull( items ) || items.isEmpty()
+                || shopUnitImportRequest.getUpdateDate() == null ) {
             throw new ValidationException();
         }
-        shopUnitImportRequest.getItems().forEach( this::validateShopUnitImport );
+
+        checkForDuplicate( items );
+
+        items.forEach( this::validateShopUnitImport );
+    }
+
+    private void checkForDuplicate( List<ShopUnitImport> items ) {
+        // в одном запросе не может быть двух элементов с одинаковым id
+        Set<UUID> uuids = new HashSet<>();
+        for ( ShopUnitImport item : items ) {
+            if ( !uuids.add( item.getId() ) )
+                throw new ValidationException();
+        }
     }
 
     public void validateShopUnitImport( ShopUnitImport shopUnitImport ) {
-        if ( Objects.isNull( shopUnitImport.getId() )
-                || Objects.isNull( shopUnitImport.getName() ) || shopUnitImport.getName().trim().isBlank()
-                || shopUnitImport.getType() == ShopUnitType.OFFER && Objects.isNull( shopUnitImport.getPrice() )
-                || Objects.nonNull( shopUnitImport.getPrice() ) && shopUnitImport.getPrice() < 0
-                || Objects.isNull( shopUnitImport.getType() ) ) {
+        if ( shopUnitImport.getName().isBlank()
+                // у категорий поле price должно содержать null
+                || ShopUnitType.CATEGORY.equals( shopUnitImport.getType() ) && Objects.nonNull( shopUnitImport.getPrice() )
+                // цена товара не может быть null и должна быть больше либо равна нулю
+                || ShopUnitType.OFFER.equals( shopUnitImport.getType() )
+                && ( Objects.isNull( shopUnitImport.getPrice() ) || shopUnitImport.getPrice() < 0 )
+        ) {
             throw new ValidationException();
         }
     }

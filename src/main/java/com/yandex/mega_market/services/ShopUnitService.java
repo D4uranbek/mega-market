@@ -76,16 +76,7 @@ public class ShopUnitService {
             }
         }
 
-        List<ShopUnit> shopUnits = new ArrayList<>();
-        for ( ShopUnitEntity shopUnitEntity : shopUnitEntities ) {
-            ShopUnit toShopUnit = customMapper.toShopUnit( shopUnitEntity );
-            shopUnits.add( toShopUnit );
-        }
-//        List<ShopUnit> list = customMapper.toShopUnitList( shopUnitEntities );
-
-        ShopUnitStatisticResponse statisticResponse = new ShopUnitStatisticResponse();
-        statisticResponse.setItems( shopUnits );
-
-        return statisticResponse;
+        List<ShopUnit> list = customMapper.toShopUnitList( shopUnitEntities );
+        return new ShopUnitStatisticResponse( list );
     }
 }

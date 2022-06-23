@@ -1,0 +1,67 @@
+version: "3.9"
+services:
+  service:
+    image: d4uranbek/mega-market:latest
+    container_name: service_mega_market
+    restart: "always"
+    environment:
+      JDBC_URI: "jdbc:postgresql://localhost:5432/mega_market"
+      SPRING_DATASOURCE_USERNAME: "postgres"
+      SPRING_DATASOURCE_PASSWORD: "1111"
+    ports:
+      - "80:80"
+    networks:
+      - backend
+
+  db:
+    image: postgres:latest
+    container_name: db_mega_market
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=4GB"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "temp_file_limit=10GB"
+      - "-c"
+      - "log_min_duration_statement=200ms"
+      - "-c"
+      - "idle_in_transaction_session_timeout=10s"
+      - "-c"
+      - "lock_timeout=1s"
+      - "-c"
+      - "statement_timeout=60s"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "pg_stat_statements.max=10000"
+      - "-c"
+      - "pg_stat_statements.track=all"
+    environment:
+      POSTGRES_DB: "d4uranbek_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1111"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - 'my_app_data:/var/lib/postgresql/data'
+    ports:
+      - "8001:5432"
+    restart: "always"
+    networks:
+      - backend
+
+volumes:
+  my_app_data:
+
+networks:
+ backend:
+   driver: bridge
